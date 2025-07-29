@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Altitude Banking",
+    "slug": "altitude-banking-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.altitude.banking"
+    },
+    "android": {
+      "package": "com.altitude.banking"
+    },
+    "web": {}
+  }
+}
