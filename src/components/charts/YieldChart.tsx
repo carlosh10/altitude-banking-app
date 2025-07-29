@@ -15,10 +15,10 @@ export const YieldChart: React.FC<YieldChartProps> = ({ accounts }) => {
   const generateYieldData = () => {
     const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const datasets = accounts
-      .filter(acc => acc.yield && acc.yield > 0)
+      .filter(acc => acc.yieldRate && acc.yieldRate > 0)
       .map((account, index) => {
         // Generate some mock historical data around the current yield
-        const baseYield = account.yield || 0;
+        const baseYield = account.yieldRate || 0;
         const data = labels.map(() => {
           const variation = (Math.random() - 0.5) * 0.5; // ±0.25% variation
           return Math.max(0.1, baseYield + variation);
@@ -83,7 +83,7 @@ export const YieldChart: React.FC<YieldChartProps> = ({ accounts }) => {
       
       <View style={styles.legend}>
         {accounts
-          .filter(acc => acc.yield && acc.yield > 0)
+          .filter(acc => acc.yieldRate && acc.yieldRate > 0)
           .map((account, index) => {
             const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545'];
             return (
@@ -95,7 +95,7 @@ export const YieldChart: React.FC<YieldChartProps> = ({ accounts }) => {
                   ]} 
                 />
                 <Text style={styles.legendText}>
-                  {account.name} ({account.yield?.toFixed(1)}%)
+                  {account.name} ({account.yieldRate?.toFixed(1)}%)
                 </Text>
               </View>
             );

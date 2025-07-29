@@ -11,7 +11,7 @@ export interface Account {
   name: string;
   currency: 'USD' | 'BRL';
   balance: number;
-  yield?: number;
+  yieldRate?: number;
   type: 'checking' | 'savings' | 'trading';
 }
 

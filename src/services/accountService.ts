@@ -12,7 +12,7 @@ class AccountService {
           name: 'Business USD Account',
           currency: 'USD',
           balance: 125000.50,
-          yield: 4.2,
+          yieldRate: 4.2,
           type: 'checking',
         },
         {
@@ -20,7 +20,7 @@ class AccountService {
           name: 'Business BRL Account',
           currency: 'BRL',
           balance: 650000.00,
-          yield: 8.5,
+          yieldRate: 8.5,
           type: 'checking',
         },
         {
@@ -28,7 +28,7 @@ class AccountService {
           name: 'USD Savings',
           currency: 'USD',
           balance: 50000.00,
-          yield: 3.8,
+          yieldRate: 3.8,
           type: 'savings',
         },
       ];

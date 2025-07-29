@@ -26,9 +26,9 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account, onPress }) =>
             {account.type.charAt(0).toUpperCase() + account.type.slice(1)} • {account.currency}
           </Text>
         </View>
-        {account.yield && (
+        {account.yieldRate && (
           <View style={styles.yieldBadge}>
-            <Text style={styles.yieldText}>{account.yield.toFixed(1)}% APY</Text>
+            <Text style={styles.yieldText}>{account.yieldRate.toFixed(1)}% APY</Text>
           </View>
         )}
       </View>

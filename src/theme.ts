@@ -4,15 +4,20 @@ export const theme = {
     primary: '#6366F1', // Indigo
     primaryDark: '#4F46E5',
     primaryLight: '#8B5CF6',
+    secondary: '#5856D6',
     
-    // Gradients for modern look
-    gradients: {
-      primary: ['#6366F1', '#8B5CF6'],
-      success: ['#10B981', '#34D399'],
-      warning: ['#F59E0B', '#FBBF24'],
-      danger: ['#EF4444', '#F87171'],
-      dark: ['#1F2937', '#374151'],
-    },
+    // Semantic colors
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+    
+    // Banking specific
+    usd: '#22C55E',
+    brl: '#F59E0B',
+    pending: '#F59E0B',
+    approved: '#10B981',
+    rejected: '#EF4444',
     
     // Neutral colors
     white: '#FFFFFF',
@@ -29,38 +34,7 @@ export const theme = {
       800: '#1F2937',
       900: '#111827',
     },
-    
-    // Semantic colors
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-    info: '#3B82F6',
-    
-    // Banking specific
-    usd: '#22C55E',
-    brl: '#F59E0B',
-    pending: '#F59E0B',
-    approved: '#10B981',
-    rejected: '#EF4444',
   },
-  
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
-  },
-  
-  borderRadius: {
-    sm: 6,
-    md: 12,
-    lg: 16,
-    xl: 24,
-    full: 9999,
-  },
-  
   fontSize: {
     xs: 12,
     sm: 14,
@@ -68,18 +42,31 @@ export const theme = {
     lg: 18,
     xl: 20,
     '2xl': 24,
-    '3xl': 32,
-    '4xl': 40,
+    '3xl': 30,
+    '4xl': 36,
+    '5xl': 48,
   },
-  
   fontWeight: {
-    normal: '400',
-    medium: '500',
-    semibold: '600',
-    bold: '700',
-    extrabold: '800',
+    normal: '400' as const,
+    medium: '500' as const,
+    semibold: '600' as const,
+    bold: '700' as const,
   },
-  
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    '2xl': 48,
+  },
+  borderRadius: {
+    sm: 4,
+    md: 8,
+    lg: 12,
+    xl: 16,
+    full: 9999,
+  },
   shadows: {
     sm: {
       shadowColor: '#000',
@@ -110,6 +97,13 @@ export const theme = {
       elevation: 12,
     },
   },
+  gradients: {
+    primary: ['#6366F1', '#8B5CF6'],
+    success: ['#10B981', '#34D399'],
+    warning: ['#F59E0B', '#FBBF24'],
+    danger: ['#EF4444', '#F87171'],
+    dark: ['#1F2937', '#374151'],
+    usd: ['#22C55E', '#16A34A'],
+    brl: ['#F59E0B', '#D97706'],
+  },
 };
-
-export type Theme = typeof theme;

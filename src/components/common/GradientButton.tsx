@@ -34,13 +34,13 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
   const getGradientColors = () => {
     switch (variant) {
       case 'success':
-        return theme.colors.gradients.success;
+        return theme.gradients.success;
       case 'warning':
-        return theme.colors.gradients.warning;
+        return theme.gradients.warning;
       case 'danger':
-        return theme.colors.gradients.danger;
+        return theme.gradients.danger;
       default:
-        return theme.colors.gradients.primary;
+        return theme.gradients.primary;
     }
   };
 

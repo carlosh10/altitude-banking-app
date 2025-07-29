@@ -7,7 +7,7 @@ interface BalanceCardProps {
   title: string;
   amount: number;
   currency: 'USD' | 'BRL';
-  yield?: number;
+  yieldRate?: number;
   gradient?: string[];
 }
 
@@ -15,7 +15,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   title,
   amount,
   currency,
-  yield,
+  yieldRate,
   gradient,
 }) => {
   const formatAmount = (amount: number, currency: string) => {
@@ -40,10 +40,10 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
       >
         <View style={styles.header}>
           <Text style={styles.titleGradient}>{title}</Text>
-          {yield && (
+          {yieldRate && (
             <View style={styles.yieldBadgeGradient}>
               <Text style={styles.yieldTextGradient}>
-                +{yield.toFixed(1)}% APY
+                +{yieldRate.toFixed(1)}% APY
               </Text>
             </View>
           )}
@@ -64,13 +64,16 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   }
 
   return (
-    <View style={[styles.container, styles.whiteCard, theme.shadows.md]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        {yield && (
-          <View style={[styles.yieldBadge, { backgroundColor: getCurrencyColor() }]}>
-            <Text style={styles.yieldText}>+{yield.toFixed(1)}% APY</Text>
-          </View>
+        {yieldRate && (
+          <LinearGradient
+            colors={currency === 'USD' ? ['#22C55E', '#16A34A'] : ['#F59E0B', '#D97706']}
+            style={styles.yieldBadge}
+          >
+            <Text style={styles.yieldText}>+{yieldRate.toFixed(1)}% APY</Text>
+          </LinearGradient>
         )}
       </View>
       
@@ -90,10 +93,10 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
     minHeight: 140,
+    backgroundColor: 'transparent',
   },
   whiteCard: {
     backgroundColor: theme.colors.white,
@@ -109,8 +112,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.gray[600],
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.gray[700],
     flex: 1,
   },
   titleGradient: {
@@ -123,6 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.full,
+    ...theme.shadows.sm,
   },
   yieldBadgeGradient: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',

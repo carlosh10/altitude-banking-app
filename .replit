@@ -1,5 +1,4 @@
-run = "npm start"
-entrypoint = "App.tsx"
+run = "npm run dev"
 modules = ["nodejs-18"]
 
 [nix]
@@ -29,5 +28,17 @@ pattern = "**/{*.js,*.jsx,*.ts,*.tsx,*.json}"
 start = "typescript-language-server --stdio"
 
 [deployment]
-run = ["sh", "-c", "npm start"]
+run = ["sh", "-c", "npm run dev"]
 deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
+
+[[ports]]
+localPort = 19006
+externalPort = 3000

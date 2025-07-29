@@ -8,11 +8,21 @@ import {
   Alert,
   ScrollView,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { Picker } from '@react-native-picker/picker';
 import { Account, Transaction } from '../../types';
 import { paymentsService } from '../../services/paymentsService';
 import { accountService } from '../../services/accountService';
+import { GradientButton } from '../../components/common/GradientButton';
+import { GradientCard } from '../../components/common/GradientCard';
+import { theme } from '../../theme';
+
+const { width, height } = Dimensions.get('window');
 
 export const PaymentsScreen: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -24,6 +34,7 @@ export const PaymentsScreen: React.FC = () => {
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     loadAccounts();
@@ -49,19 +60,19 @@ export const PaymentsScreen: React.FC = () => {
 
   const handleSendPayment = async () => {
     if (!fromAccount || !toAddress || !amount) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert('Missing Information', 'Please fill in all required fields');
       return;
     }
 
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      Alert.alert('Invalid Amount', 'Please enter a valid amount');
       return;
     }
 
     const selectedAccount = accounts.find(acc => acc.id === fromAccount);
     if (!selectedAccount || selectedAccount.balance < numAmount) {
-      Alert.alert('Error', 'Insufficient balance');
+      Alert.alert('Insufficient Balance', 'Your account balance is insufficient for this transaction');
       return;
     }
 
@@ -91,10 +102,10 @@ export const PaymentsScreen: React.FC = () => {
           [{ text: 'OK', onPress: resetForm }]
         );
       } else {
-        Alert.alert('Error', response.error || 'Payment failed');
+        Alert.alert('Payment Failed', response.error || 'Unable to process payment. Please try again.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Payment failed. Please try again.');
+      Alert.alert('Error', 'Payment failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -113,325 +124,533 @@ export const PaymentsScreen: React.FC = () => {
     : null;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Send Payment</Text>
-        <Text style={styles.subtitle}>Transfer BRL or USD (USDC)</Text>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.section}>
-          <Text style={styles.label}>From Account</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={fromAccount}
-              onValueChange={setFromAccount}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select account" value="" />
-              {accounts.map(account => (
-                <Picker.Item
-                  key={account.id}
-                  label={`${account.name} - ${account.currency} ${account.balance.toLocaleString()}`}
-                  value={account.id}
-                />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>To Address/Account</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter recipient address or account"
-            value={toAddress}
-            onChangeText={setToAddress}
-            multiline
-          />
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.halfSection}>
-            <Text style={styles.label}>Amount</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0.00"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-            />
-          </View>
-          
-          <View style={styles.halfSection}>
-            <Text style={styles.label}>Currency</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={currency}
-                onValueChange={setCurrency}
-                style={styles.picker}
-              >
-                <Picker.Item label="USD (USDC)" value="USD" />
-                <Picker.Item label="BRL" value="BRL" />
-              </Picker>
-            </View>
-          </View>
-        </View>
-
-        {exchangeRate && parseFloat(amount) > 0 && (
-          <View style={styles.exchangeInfo}>
-            <Text style={styles.exchangeLabel}>
-              Exchange Rate: 1 {currency} = {exchangeRate.toFixed(4)} {currency === 'USD' ? 'BRL' : 'USD'}
-            </Text>
-            {convertedAmount && (
-              <Text style={styles.convertedAmount}>
-                ≈ {convertedAmount.toFixed(2)} {currency === 'USD' ? 'BRL' : 'USD'}
-              </Text>
-            )}
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Description (Optional)</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Payment description"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-
-        {selectedAccount && (
-          <View style={styles.balanceInfo}>
-            <Text style={styles.balanceText}>
-              Available: {selectedAccount.currency} {selectedAccount.balance.toLocaleString()}
-            </Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[styles.button, (!fromAccount || !toAddress || !amount) && styles.buttonDisabled]}
-          onPress={handleSendPayment}
-          disabled={!fromAccount || !toAddress || !amount || loading}
+    <>
+      <StatusBar style="light" />
+      <View style={styles.container}>
+        {/* Gradient Background */}
+        <LinearGradient
+          colors={['#000000', '#1a1a1a', '#f5f5f5']}
+          locations={[0, 0.4, 1]}
+          style={styles.backgroundGradient}
         >
-          <Text style={styles.buttonText}>Send Payment</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Modal
-        visible={showConfirmation}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowConfirmation(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirm Payment</Text>
-            
-            <View style={styles.confirmationDetails}>
-              <Text style={styles.confirmLabel}>Amount:</Text>
-              <Text style={styles.confirmValue}>{currency} {parseFloat(amount).toLocaleString()}</Text>
-              
-              {convertedAmount && (
-                <>
-                  <Text style={styles.confirmLabel}>Converted:</Text>
-                  <Text style={styles.confirmValue}>
-                    {currency === 'USD' ? 'BRL' : 'USD'} {convertedAmount.toFixed(2)}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardContainer}
+          >
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Floating Header */}
+              <View style={styles.header}>
+                <View style={styles.headerBlur}>
+                  <Text style={styles.title}>Send Payment</Text>
+                  <Text style={styles.subtitle}>
+                    Transfer BRL or USD (USDC) globally
                   </Text>
-                </>
-              )}
-              
-              <Text style={styles.confirmLabel}>To:</Text>
-              <Text style={styles.confirmValue}>{toAddress}</Text>
-              
-              {description && (
-                <>
-                  <Text style={styles.confirmLabel}>Description:</Text>
-                  <Text style={styles.confirmValue}>{description}</Text>
-                </>
-              )}
-            </View>
+                </View>
+              </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowConfirmation(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={confirmPayment}
-                disabled={loading}
-              >
-                <Text style={styles.confirmButtonText}>
-                  {loading ? 'Processing...' : 'Confirm'}
-                </Text>
-              </TouchableOpacity>
+              {/* Floating Form Card */}
+              <View style={styles.formContainer}>
+                <View style={styles.floatingCard}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                    style={styles.cardGradient}
+                  >
+                    {/* From Account Section */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>From Account</Text>
+                      <View style={styles.inputContainer}>
+                        <View style={styles.pickerWrapper}>
+                          <Picker
+                            selectedValue={fromAccount}
+                            onValueChange={setFromAccount}
+                            style={styles.picker}
+                          >
+                            <Picker.Item 
+                              label="Select your account" 
+                              value="" 
+                              style={styles.pickerPlaceholder}
+                            />
+                            {accounts.map(account => (
+                              <Picker.Item
+                                key={account.id}
+                                label={`${account.name} - ${account.currency} ${account.balance.toLocaleString()}`}
+                                value={account.id}
+                                style={styles.pickerItem}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                        {selectedAccount && (
+                          <View style={styles.balanceInfo}>
+                            <LinearGradient
+                              colors={currency === 'USD' ? theme.gradients.usd : theme.gradients.brl}
+                              style={styles.balanceBadge}
+                            >
+                              <Text style={styles.balanceText}>
+                                Available: {selectedAccount.currency} {selectedAccount.balance.toLocaleString()}
+                              </Text>
+                            </LinearGradient>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* To Address Section */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Recipient</Text>
+                      <View style={styles.inputContainer}>
+                        <View
+                          style={[
+                            styles.inputWrapper,
+                            focusedField === 'toAddress' && styles.inputWrapperFocused,
+                          ]}
+                        >
+                          <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Enter recipient address or account ID"
+                            placeholderTextColor={theme.colors.gray[400]}
+                            value={toAddress}
+                            onChangeText={setToAddress}
+                            onFocus={() => setFocusedField('toAddress')}
+                            onBlur={() => setFocusedField(null)}
+                            multiline
+                            numberOfLines={2}
+                          />
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Amount and Currency Section */}
+                    <View style={styles.row}>
+                      <View style={styles.halfSection}>
+                        <Text style={styles.sectionTitle}>Amount</Text>
+                        <View style={styles.inputContainer}>
+                          <View
+                            style={[
+                              styles.inputWrapper,
+                              focusedField === 'amount' && styles.inputWrapperFocused,
+                            ]}
+                          >
+                            <TextInput
+                              style={[styles.input, styles.amountInput]}
+                              placeholder="0.00"
+                              placeholderTextColor={theme.colors.gray[400]}
+                              value={amount}
+                              onChangeText={setAmount}
+                              onFocus={() => setFocusedField('amount')}
+                              onBlur={() => setFocusedField(null)}
+                              keyboardType="decimal-pad"
+                            />
+                          </View>
+                        </View>
+                      </View>
+                      
+                      <View style={styles.halfSection}>
+                        <Text style={styles.sectionTitle}>Currency</Text>
+                        <View style={styles.inputContainer}>
+                          <View style={styles.pickerWrapper}>
+                            <Picker
+                              selectedValue={currency}
+                              onValueChange={setCurrency}
+                              style={styles.picker}
+                            >
+                              <Picker.Item label="USD (USDC)" value="USD" />
+                              <Picker.Item label="BRL" value="BRL" />
+                            </Picker>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Exchange Rate Info */}
+                    {exchangeRate && parseFloat(amount) > 0 && (
+                      <View style={styles.section}>
+                        <View style={styles.exchangeCard}>
+                          <LinearGradient
+                            colors={['rgba(99, 102, 241, 0.1)', 'rgba(139, 92, 246, 0.1)']}
+                            style={styles.exchangeGradient}
+                          >
+                            <View style={styles.exchangeHeader}>
+                              <Text style={styles.exchangeTitle}>💱 Exchange Rate</Text>
+                              <Text style={styles.exchangeRate}>
+                                1 {currency} = {exchangeRate.toFixed(4)} {currency === 'USD' ? 'BRL' : 'USD'}
+                              </Text>
+                            </View>
+                            {convertedAmount && (
+                              <Text style={styles.convertedAmount}>
+                                ≈ {convertedAmount.toFixed(2)} {currency === 'USD' ? 'BRL' : 'USD'}
+                              </Text>
+                            )}
+                          </LinearGradient>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Description Section */}
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Description (Optional)</Text>
+                      <View style={styles.inputContainer}>
+                        <View
+                          style={[
+                            styles.inputWrapper,
+                            focusedField === 'description' && styles.inputWrapperFocused,
+                          ]}
+                        >
+                          <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Add a note for this payment"
+                            placeholderTextColor={theme.colors.gray[400]}
+                            value={description}
+                            onChangeText={setDescription}
+                            onFocus={() => setFocusedField('description')}
+                            onBlur={() => setFocusedField(null)}
+                            multiline
+                            numberOfLines={3}
+                          />
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Send Button */}
+                    <View style={styles.buttonContainer}>
+                      <GradientButton
+                        title="Send Payment"
+                        onPress={handleSendPayment}
+                        loading={loading}
+                        disabled={!fromAccount || !toAddress || !amount}
+                        size="lg"
+                        variant="primary"
+                        style={styles.sendButton}
+                      />
+                    </View>
+                  </LinearGradient>
+                </View>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+
+          {/* Confirmation Modal */}
+          <Modal
+            visible={showConfirmation}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setShowConfirmation(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <View style={styles.floatingCard}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                    style={styles.modalCardGradient}
+                  >
+                    <Text style={styles.modalTitle}>Confirm Payment</Text>
+                    
+                    <View style={styles.confirmationDetails}>
+                      <View style={styles.confirmRow}>
+                        <Text style={styles.confirmLabel}>Amount</Text>
+                        <Text style={styles.confirmValue}>
+                          {currency} {parseFloat(amount || '0').toLocaleString()}
+                        </Text>
+                      </View>
+                      
+                      {convertedAmount && (
+                        <View style={styles.confirmRow}>
+                          <Text style={styles.confirmLabel}>Converted</Text>
+                          <Text style={styles.confirmValue}>
+                            {currency === 'USD' ? 'BRL' : 'USD'} {convertedAmount.toFixed(2)}
+                          </Text>
+                        </View>
+                      )}
+                      
+                      <View style={styles.confirmRow}>
+                        <Text style={styles.confirmLabel}>To</Text>
+                        <Text style={[styles.confirmValue, styles.addressText]} numberOfLines={2}>
+                          {toAddress}
+                        </Text>
+                      </View>
+                      
+                      {description && (
+                        <View style={styles.confirmRow}>
+                          <Text style={styles.confirmLabel}>Description</Text>
+                          <Text style={styles.confirmValue}>{description}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.cancelButton]}
+                        onPress={() => setShowConfirmation(false)}
+                      >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      
+                      <GradientButton
+                        title={loading ? 'Processing...' : 'Confirm & Send'}
+                        onPress={confirmPayment}
+                        loading={loading}
+                        variant="primary"
+                        style={styles.confirmButtonWrapper}
+                      />
+                    </View>
+                  </LinearGradient>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
+          </Modal>
+        </LinearGradient>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+  },
+  backgroundGradient: {
+    flex: 1,
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: theme.spacing['2xl'],
   },
   header: {
-    padding: 20,
     paddingTop: 60,
+    paddingHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  headerBlur: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    ...theme.shadows.xl,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontSize: theme.fontSize['3xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.white,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
+    fontSize: theme.fontSize.lg,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    lineHeight: 24,
   },
-  form: {
-    padding: 20,
+  formContainer: {
+    paddingHorizontal: theme.spacing.lg,
+  },
+  floatingCard: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.lg,
+  },
+  cardGradient: {
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.lg,
   },
-  halfSection: {
-    flex: 1,
-    marginBottom: 20,
+  sectionTitle: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.gray[800],
+    marginBottom: theme.spacing.sm,
+  },
+  inputContainer: {
+    // Container for input wrappers
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
+  halfSection: {
+    flex: 1,
+  },
+  inputWrapper: {
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    ...theme.shadows.sm,
+  },
+  inputWrapperFocused: {
+    borderColor: theme.colors.primary,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    ...theme.shadows.md,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: '#fff',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.fontSize.base,
+    color: theme.colors.gray[900],
+    backgroundColor: 'transparent',
+  },
+  amountInput: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'right',
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 60,
     textAlignVertical: 'top',
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
+  pickerWrapper: {
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    overflow: 'hidden',
+    ...theme.shadows.sm,
   },
   picker: {
     height: 50,
+    color: theme.colors.gray[900],
   },
-  exchangeInfo: {
-    backgroundColor: '#e8f4fd',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 20,
+  pickerPlaceholder: {
+    color: theme.colors.gray[400],
   },
-  exchangeLabel: {
-    fontSize: 14,
-    color: '#0066cc',
-  },
-  convertedAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#0066cc',
-    marginTop: 4,
+  pickerItem: {
+    color: theme.colors.gray[900],
   },
   balanceInfo: {
-    marginBottom: 20,
+    marginTop: theme.spacing.sm,
+  },
+  balanceBadge: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    alignSelf: 'flex-start',
+    ...theme.shadows.sm,
   },
   balanceText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.white,
   },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 16,
-    borderRadius: 8,
+  exchangeCard: {
+    borderRadius: theme.borderRadius.lg,
+    overflow: 'hidden',
+    ...theme.shadows.sm,
+  },
+  exchangeGradient: {
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+  },
+  exchangeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: theme.spacing.xs,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  exchangeTitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.primary,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  exchangeRate: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
+  },
+  convertedAmount: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    marginTop: theme.spacing.lg,
+  },
+  sendButton: {
+    // Button styles handled by GradientButton
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: theme.spacing.lg,
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 12,
-    width: '90%',
+  modalContainer: {
+    width: '100%',
     maxWidth: 400,
   },
+  modalCardGradient: {
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.xl,
+  },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: theme.fontSize['2xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.gray[900],
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: theme.spacing.xl,
   },
   confirmationDetails: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.xl,
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   confirmLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.gray[600],
+    fontWeight: theme.fontWeight.medium,
+    flex: 1,
   },
   confirmValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.gray[900],
+    flex: 2,
+    textAlign: 'right',
+  },
+  addressText: {
+    fontSize: theme.fontSize.sm,
   },
   modalButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: theme.spacing.md,
   },
   modalButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    ...theme.shadows.sm,
   },
   cancelButton: {
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  confirmButton: {
-    backgroundColor: '#007bff',
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   cancelButtonText: {
-    color: '#666',
-    fontWeight: '600',
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.gray[700],
   },
-  confirmButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+  confirmButtonWrapper: {
+    flex: 1,
   },
 });

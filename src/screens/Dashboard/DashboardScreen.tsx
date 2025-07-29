@@ -63,8 +63,8 @@ export const DashboardScreen: React.FC = () => {
     .reduce((sum, acc) => sum + acc.balance, 0);
 
   const avgYield = accounts
-    .filter(acc => acc.yield)
-    .reduce((sum, acc, _, arr) => sum + (acc.yield || 0) / arr.length, 0);
+    .filter(acc => acc.yieldRate)
+    .reduce((sum, acc, _, arr) => sum + (acc.yieldRate || 0) / arr.length, 0);
 
   if (loading) {
     return (
@@ -79,226 +79,326 @@ export const DashboardScreen: React.FC = () => {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <View style={styles.container}>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+        {/* Gradient Background */}
+        <LinearGradient
+          colors={['#000000', '#1a1a1a', '#f5f5f5']}
+          locations={[0, 0.3, 1]}
+          style={styles.backgroundGradient}
         >
-          {/* Header */}
-          <LinearGradient
-            colors={['#6366F1', '#8B5CF6']}
-            style={styles.header}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh}
+                tintColor="rgba(255,255,255,0.8)"
+              />
+            }
           >
-            <View style={styles.headerContent}>
-              <Text style={styles.greeting}>Good morning</Text>
-              <Text style={styles.userName}>Carlos</Text>
-              
-              <View style={styles.totalPortfolio}>
-                <Text style={styles.portfolioLabel}>Total Portfolio</Text>
-                <Text style={styles.portfolioAmount}>
-                  ${(totalUSD + (totalBRL / 5.2)).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </Text>
-                {avgYield > 0 && (
-                  <Text style={styles.portfolioYield}>
-                    +{avgYield.toFixed(1)}% avg yield
-                  </Text>
-                )}
-              </View>
-            </View>
-          </LinearGradient>
-
-          <View style={styles.content}>
-            {/* Balance Cards */}
-            <View style={styles.balanceSection}>
-              <View style={styles.balanceRow}>
-                <View style={styles.balanceCardContainer}>
-                  <BalanceCard
-                    title="USD Balance"
-                    amount={totalUSD}
-                    currency="USD"
-                    yield={accounts.find(acc => acc.currency === 'USD')?.yield}
-                    gradient={theme.colors.gradients.success}
-                  />
-                </View>
-                <View style={styles.balanceCardContainer}>
-                  <BalanceCard
-                    title="BRL Balance"
-                    amount={totalBRL}
-                    currency="BRL"
-                    yield={accounts.find(acc => acc.currency === 'BRL')?.yield}
-                    gradient={theme.colors.gradients.warning}
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/* Quick Actions */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
-              <View style={styles.quickActions}>
-                <TouchableOpacity style={styles.quickAction}>
-                  <LinearGradient
-                    colors={theme.colors.gradients.primary}
-                    style={styles.quickActionGradient}
-                  >
-                    <Text style={styles.quickActionIcon}>💸</Text>
-                  </LinearGradient>
-                  <Text style={styles.quickActionLabel}>Send Money</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.quickAction}>
-                  <LinearGradient
-                    colors={theme.colors.gradients.success}
-                    style={styles.quickActionGradient}
-                  >
-                    <Text style={styles.quickActionIcon}>✅</Text>
-                  </LinearGradient>
-                  <Text style={styles.quickActionLabel}>Approvals</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.quickAction}>
-                  <LinearGradient
-                    colors={theme.colors.gradients.warning}
-                    style={styles.quickActionGradient}
-                  >
-                    <Text style={styles.quickActionIcon}>🔄</Text>
-                  </LinearGradient>
-                  <Text style={styles.quickActionLabel}>Trade</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.quickAction}>
-                  <LinearGradient
-                    colors={theme.colors.gradients.dark}
-                    style={styles.quickActionGradient}
-                  >
-                    <Text style={styles.quickActionIcon}>📊</Text>
-                  </LinearGradient>
-                  <Text style={styles.quickActionLabel}>Analytics</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Recent Transactions */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Recent Activity</Text>
-                <TouchableOpacity>
-                  <Text style={styles.viewAllButton}>View All</Text>
-                </TouchableOpacity>
-              </View>
-
-              <GradientCard shadow="lg">
-                {recentTransactions.length === 0 ? (
-                  <View style={styles.emptyTransactions}>
-                    <Text style={styles.emptyIcon}>📭</Text>
-                    <Text style={styles.emptyTitle}>No recent activity</Text>
-                    <Text style={styles.emptySubtitle}>
-                      Your transactions will appear here
-                    </Text>
+            {/* Floating Header */}
+            <View style={styles.header}>
+              <View style={styles.headerBlur}>
+                <View style={styles.headerContent}>
+                  <View style={styles.greetingSection}>
+                    <Text style={styles.greeting}>Good morning</Text>
+                    <Text style={styles.userName}>Carlos</Text>
                   </View>
-                ) : (
-                  recentTransactions.map((transaction, index) => (
-                    <View
-                      key={transaction.id}
-                      style={[
-                        styles.transactionItem,
-                        index < recentTransactions.length - 1 && styles.transactionBorder,
-                      ]}
-                    >
-                      <View style={styles.transactionIcon}>
-                        <Text style={styles.transactionEmoji}>
-                          {transaction.type === 'transfer' ? '💸' : 
-                           transaction.type === 'swap' ? '🔄' : 
-                           transaction.type === 'deposit' ? '⬇️' : '⬆️'}
-                        </Text>
-                      </View>
-                      
-                      <View style={styles.transactionDetails}>
-                        <Text style={styles.transactionTitle}>
-                          {transaction.type === 'transfer' ? 'Transfer' :
-                           transaction.type === 'swap' ? 'Currency Swap' :
-                           transaction.type === 'deposit' ? 'Deposit' : 'Withdrawal'}
-                        </Text>
-                        <Text style={styles.transactionSubtitle}>
-                          {new Date(transaction.createdAt).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      
-                      <View style={styles.transactionAmount}>
-                        <Text style={[
-                          styles.transactionValue,
-                          { 
-                            color: transaction.currency === 'USD' 
-                              ? theme.colors.usd 
-                              : theme.colors.brl 
-                          }
-                        ]}>
-                          {transaction.currency === 'USD' ? '$' : 'R$'}
-                          {transaction.amount.toLocaleString()}
-                        </Text>
-                        <View style={[
-                          styles.statusBadge,
-                          { 
-                            backgroundColor: 
-                              transaction.status === 'completed' ? theme.colors.success :
-                              transaction.status === 'pending' ? theme.colors.warning :
-                              theme.colors.error
-                          }
-                        ]}>
-                          <Text style={styles.statusText}>
-                            {transaction.status}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  ))
-                )}
-              </GradientCard>
-            </View>
-
-            {/* Accounts Overview */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Your Accounts</Text>
-              {accounts.map(account => (
-                <GradientCard key={account.id} shadow="md" style={styles.accountCard}>
-                  <View style={styles.accountHeader}>
-                    <View>
-                      <Text style={styles.accountName}>{account.name}</Text>
-                      <Text style={styles.accountType}>
-                        {account.type} • {account.currency}
-                      </Text>
-                    </View>
-                    {account.yield && (
-                      <View style={styles.accountYield}>
-                        <Text style={styles.accountYieldText}>
-                          {account.yield.toFixed(1)}% APY
+                  
+                  <View style={styles.totalPortfolio}>
+                    <Text style={styles.portfolioLabel}>Total Portfolio</Text>
+                    <Text style={styles.portfolioAmount}>
+                      ${(totalUSD + (totalBRL / 5.2)).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Text>
+                    {avgYield > 0 && (
+                      <View style={styles.yieldContainer}>
+                        <Text style={styles.portfolioYield}>
+                          +{avgYield.toFixed(1)}% avg yield
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text style={[
-                    styles.accountBalance,
-                    { 
-                      color: account.currency === 'USD' 
-                        ? theme.colors.usd 
-                        : theme.colors.brl 
-                    }
-                  ]}>
-                    {account.currency === 'USD' ? '$' : 'R$'}
-                    {account.balance.toLocaleString()}
-                  </Text>
-                </GradientCard>
-              ))}
+                </View>
+              </View>
             </View>
-          </View>
-        </ScrollView>
+
+            <View style={styles.content}>
+              {/* Floating Balance Cards */}
+              <View style={styles.balanceSection}>
+                <View style={styles.balanceRow}>
+                  <View style={styles.balanceCardContainer}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <BalanceCard
+                          title="USD Balance"
+                          amount={totalUSD}
+                          currency="USD"
+                          yieldRate={accounts.find(acc => acc.currency === 'USD')?.yieldRate}
+                        />
+                      </LinearGradient>
+                    </View>
+                  </View>
+                  <View style={styles.balanceCardContainer}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <BalanceCard
+                          title="BRL Balance"
+                          amount={totalBRL}
+                          currency="BRL"
+                          yieldRate={accounts.find(acc => acc.currency === 'BRL')?.yieldRate}
+                        />
+                      </LinearGradient>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Floating Quick Actions */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Quick Actions</Text>
+                <View style={styles.quickActionsGrid}>
+                  <TouchableOpacity style={styles.quickActionCard}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <View style={styles.quickActionContent}>
+                          <View style={styles.quickActionIconContainer}>
+                            <LinearGradient
+                              colors={['#6366F1', '#8B5CF6']}
+                              style={styles.quickActionIcon}
+                            >
+                              <Text style={styles.quickActionEmoji}>💸</Text>
+                            </LinearGradient>
+                          </View>
+                          <Text style={styles.quickActionLabel}>Send Money</Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.quickActionCard}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <View style={styles.quickActionContent}>
+                          <View style={styles.quickActionIconContainer}>
+                            <LinearGradient
+                              colors={['#10B981', '#34D399']}
+                              style={styles.quickActionIcon}
+                            >
+                              <Text style={styles.quickActionEmoji}>✅</Text>
+                            </LinearGradient>
+                          </View>
+                          <Text style={styles.quickActionLabel}>Approvals</Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.quickActionCard}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <View style={styles.quickActionContent}>
+                          <View style={styles.quickActionIconContainer}>
+                            <LinearGradient
+                              colors={['#F59E0B', '#FBBF24']}
+                              style={styles.quickActionIcon}
+                            >
+                              <Text style={styles.quickActionEmoji}>🔄</Text>
+                            </LinearGradient>
+                          </View>
+                          <Text style={styles.quickActionLabel}>Trade</Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.quickActionCard}>
+                    <View style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <View style={styles.quickActionContent}>
+                          <View style={styles.quickActionIconContainer}>
+                            <LinearGradient
+                              colors={['#1F2937', '#374151']}
+                              style={styles.quickActionIcon}
+                            >
+                              <Text style={styles.quickActionEmoji}>📊</Text>
+                            </LinearGradient>
+                          </View>
+                          <Text style={styles.quickActionLabel}>Analytics</Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Recent Activity */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Recent Activity</Text>
+                  <TouchableOpacity>
+                    <Text style={styles.viewAllButton}>View All</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.floatingCard}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                    style={styles.cardGradient}
+                  >
+                    {recentTransactions.length === 0 ? (
+                      <View style={styles.emptyTransactions}>
+                        <Text style={styles.emptyIcon}>📭</Text>
+                        <Text style={styles.emptyTitle}>No recent activity</Text>
+                        <Text style={styles.emptySubtitle}>
+                          Your transactions will appear here
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={styles.transactionsList}>
+                        {recentTransactions.map((transaction, index) => (
+                          <View
+                            key={transaction.id}
+                            style={[
+                              styles.transactionItem,
+                              index < recentTransactions.length - 1 && styles.transactionBorder,
+                            ]}
+                          >
+                            <View style={styles.transactionIcon}>
+                              <LinearGradient
+                                colors={
+                                  transaction.type === 'transfer' ? ['#6366F1', '#8B5CF6'] :
+                                  transaction.type === 'swap' ? ['#F59E0B', '#FBBF24'] :
+                                  transaction.type === 'deposit' ? ['#10B981', '#34D399'] :
+                                  ['#EF4444', '#F87171']
+                                }
+                                style={styles.transactionIconGradient}
+                              >
+                                <Text style={styles.transactionEmoji}>
+                                  {transaction.type === 'transfer' ? '💸' : 
+                                   transaction.type === 'swap' ? '🔄' : 
+                                   transaction.type === 'deposit' ? '⬇️' : '⬆️'}
+                                </Text>
+                              </LinearGradient>
+                            </View>
+                            
+                            <View style={styles.transactionDetails}>
+                              <Text style={styles.transactionTitle}>
+                                {transaction.type === 'transfer' ? 'Transfer' :
+                                 transaction.type === 'swap' ? 'Currency Swap' :
+                                 transaction.type === 'deposit' ? 'Deposit' : 'Withdrawal'}
+                              </Text>
+                              <Text style={styles.transactionSubtitle}>
+                                {new Date(transaction.createdAt).toLocaleDateString()}
+                              </Text>
+                            </View>
+                            
+                            <View style={styles.transactionAmount}>
+                              <Text style={[
+                                styles.transactionValue,
+                                { 
+                                  color: transaction.currency === 'USD' 
+                                    ? theme.colors.usd 
+                                    : theme.colors.brl 
+                                }
+                              ]}>
+                                {transaction.currency === 'USD' ? '$' : 'R$'}
+                                {transaction.amount.toLocaleString()}
+                              </Text>
+                              <View style={[
+                                styles.statusBadge,
+                                { 
+                                  backgroundColor: 
+                                    transaction.status === 'completed' ? theme.colors.success :
+                                    transaction.status === 'pending' ? theme.colors.warning :
+                                    theme.colors.error
+                                }
+                              ]}>
+                                <Text style={styles.statusText}>
+                                  {transaction.status}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </LinearGradient>
+                </View>
+              </View>
+
+              {/* Your Accounts */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Your Accounts</Text>
+                <View style={styles.accountsList}>
+                  {accounts.map(account => (
+                    <View key={account.id} style={styles.floatingCard}>
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.85)']}
+                        style={styles.cardGradient}
+                      >
+                        <View style={styles.accountCard}>
+                          <View style={styles.accountHeader}>
+                            <View style={styles.accountInfo}>
+                              <Text style={styles.accountName}>{account.name}</Text>
+                              <Text style={styles.accountType}>
+                                {account.type} • {account.currency}
+                              </Text>
+                            </View>
+                            {account.yieldRate && (
+                              <LinearGradient
+                                colors={account.currency === 'USD' ? ['#22C55E', '#16A34A'] : ['#F59E0B', '#D97706']}
+                                style={styles.accountYield}
+                              >
+                                <Text style={styles.accountYieldText}>
+                                  {account.yieldRate.toFixed(1)}% APY
+                                </Text>
+                              </LinearGradient>
+                            )}
+                          </View>
+                          <Text style={[
+                            styles.accountBalance,
+                            { 
+                              color: account.currency === 'USD' 
+                                ? theme.colors.usd 
+                                : theme.colors.brl 
+                            }
+                          ]}>
+                            {account.currency === 'USD' ? '$' : 'R$'}
+                            {account.balance.toLocaleString()}
+                          </Text>
+                        </View>
+                      </LinearGradient>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </LinearGradient>
       </View>
     </>
   );
@@ -307,7 +407,9 @@ export const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.gray[50],
+  },
+  backgroundGradient: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -316,54 +418,83 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: theme.fontSize.lg,
-    color: theme.colors.gray[600],
+    color: 'rgba(255,255,255,0.8)',
     fontWeight: theme.fontWeight.medium,
+    marginTop: theme.spacing.md,
   },
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: theme.spacing['2xl'],
+  },
   header: {
     paddingTop: 60,
-    paddingBottom: theme.spacing.xl,
     paddingHorizontal: theme.spacing.lg,
+    marginBottom: -theme.spacing.lg,
+  },
+  headerBlur: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    ...theme.shadows.xl,
   },
   headerContent: {
     alignItems: 'flex-start',
   },
+  greetingSection: {
+    marginBottom: theme.spacing.lg,
+  },
   greeting: {
     fontSize: theme.fontSize.base,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: theme.fontWeight.medium,
+    marginBottom: theme.spacing.xs,
   },
   userName: {
     fontSize: theme.fontSize['3xl'],
     color: theme.colors.white,
     fontWeight: theme.fontWeight.bold,
-    marginBottom: theme.spacing.lg,
   },
   totalPortfolio: {
     alignItems: 'flex-start',
   },
   portfolioLabel: {
     fontSize: theme.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontWeight: theme.fontWeight.medium,
+    marginBottom: theme.spacing.xs,
   },
   portfolioAmount: {
     fontSize: theme.fontSize['4xl'],
     color: theme.colors.white,
     fontWeight: theme.fontWeight.bold,
-    marginVertical: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
+  },
+  yieldContainer: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
   },
   portfolioYield: {
-    fontSize: theme.fontSize.base,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: theme.fontWeight.medium,
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.white,
+    fontWeight: theme.fontWeight.semibold,
   },
   content: {
-    flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+  },
+  floatingCard: {
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    ...theme.shadows.lg,
+  },
+  cardGradient: {
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
   },
   balanceSection: {
     marginBottom: theme.spacing.xl,
@@ -387,39 +518,49 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.gray[900],
+    color: theme.colors.white,
+    marginBottom: theme.spacing.md,
   },
   viewAllButton: {
     fontSize: theme.fontSize.base,
-    color: theme.colors.primary,
+    color: 'rgba(255,255,255,0.8)',
     fontWeight: theme.fontWeight.semibold,
   },
-  quickActions: {
+  quickActionsGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: theme.spacing.md,
+    justifyContent: 'space-between',
   },
-  quickAction: {
-    flex: 1,
-    alignItems: 'center',
+  quickActionCard: {
+    width: (width - theme.spacing.lg * 2 - theme.spacing.md) / 2,
   },
-  quickActionGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
+  quickActionContent: {
     alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-    ...theme.shadows.md,
+    paddingVertical: theme.spacing.lg,
+  },
+  quickActionIconContainer: {
+    marginBottom: theme.spacing.md,
   },
   quickActionIcon: {
-    fontSize: theme.fontSize['2xl'],
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.md,
+  },
+  quickActionEmoji: {
+    fontSize: theme.fontSize.xl,
   },
   quickActionLabel: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.gray[600],
-    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.gray[700],
+    fontWeight: theme.fontWeight.semibold,
     textAlign: 'center',
+  },
+  transactionsList: {
+    paddingVertical: theme.spacing.sm,
   },
   emptyTransactions: {
     alignItems: 'center',
@@ -447,19 +588,21 @@ const styles = StyleSheet.create({
   },
   transactionBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray[100],
+    borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   transactionIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: theme.colors.gray[100],
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: theme.spacing.md,
   },
+  transactionIconGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.sm,
+  },
   transactionEmoji: {
-    fontSize: theme.fontSize.xl,
+    fontSize: theme.fontSize.lg,
   },
   transactionDetails: {
     flex: 1,
@@ -472,7 +615,7 @@ const styles = StyleSheet.create({
   },
   transactionSubtitle: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.gray[600],
+    color: theme.colors.gray[500],
   },
   transactionAmount: {
     alignItems: 'flex-end',
@@ -493,14 +636,20 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.semibold,
     textTransform: 'capitalize',
   },
+  accountsList: {
+    gap: theme.spacing.md,
+  },
   accountCard: {
-    marginBottom: theme.spacing.md,
+    // Container for account content
   },
   accountHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: theme.spacing.md,
+  },
+  accountInfo: {
+    flex: 1,
   },
   accountName: {
     fontSize: theme.fontSize.base,
@@ -514,7 +663,6 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   accountYield: {
-    backgroundColor: theme.colors.success,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.full,
