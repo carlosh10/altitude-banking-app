@@ -1,6 +1,6 @@
 # 🏦 Altitude Banking App
 
-[![Deploy to Replit](https://replit.com/badge/github/USERNAME/altitude-banking-app)](https://replit.com/new/github/USERNAME/altitude-banking-app)
+[![Deploy to Replit](https://replit.com/badge/github/carlosh10/altitude-banking-app)](https://replit.com/new/github/carlosh10/altitude-banking-app)
 
 A complete React Native Expo B2B cross-border banking application inspired by Altitude (squads.xyz/altitude). This app enables secure multi-signature banking operations between USD (USDC) and BRL currencies.
 
@@ -20,7 +20,7 @@ A complete React Native Expo B2B cross-border banking application inspired by Al
 
 ### Option 2: Local Development
 ```bash
-git clone https://github.com/YOUR_USERNAME/altitude-banking-app.git
+git clone https://github.com/carlosh10/altitude-banking-app.git
 cd altitude-banking-app
 npm install
 npm start
@@ -192,7 +192,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/altitude-banking-app/issues)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/carlosh10/altitude-banking-app/issues)
 - 📧 **Email**: Open an issue for support
 - 📖 **Documentation**: Check the code comments and README
 
