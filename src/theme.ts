@@ -47,6 +47,7 @@ export const theme = {
     '5xl': 48,
   },
   fontWeight: {
+    light: '300' as const,
     normal: '400' as const,
     medium: '500' as const,
     semibold: '600' as const,
