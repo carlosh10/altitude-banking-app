@@ -3,25 +3,35 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import { GradientButton } from '../../components/common/GradientButton';
+import { GradientCard } from '../../components/common/GradientCard';
+import { theme } from '../../theme';
 import { authService } from '../../services/authService';
 
 interface LoginScreenProps {
   onLogin: (user: any) => void;
 }
 
+const { width, height } = Dimensions.get('window');
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Missing Information', 'Please enter both email and password');
       return;
     }
 
@@ -41,108 +51,251 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>Altitude Banking</Text>
-        <Text style={styles.subtitle}>Cross-border B2B Banking</Text>
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password"
-        />
-        
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
+    <>
+      <StatusBar style="light" />
+      <LinearGradient
+        colors={['#6366F1', '#8B5CF6', '#EC4899']}
+        style={styles.backgroundGradient}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
-        
-        <Text style={styles.disclaimer}>
-          Secure multisig authentication powered by Squads Protocol
-        </Text>
-      </View>
-    </View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header Section */}
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <LinearGradient
+                  colors={[theme.colors.white, '#F8FAFC']}
+                  style={styles.logoCircle}
+                >
+                  <Text style={styles.logoText}>A</Text>
+                </LinearGradient>
+              </View>
+              
+              <Text style={styles.title}>Altitude Banking</Text>
+              <Text style={styles.subtitle}>
+                Cross-border B2B banking made simple
+              </Text>
+            </View>
+
+            {/* Login Form */}
+            <View style={styles.formContainer}>
+              <GradientCard shadow="xl" style={styles.formCard}>
+                <Text style={styles.formTitle}>Welcome back</Text>
+                <Text style={styles.formSubtitle}>
+                  Sign in to your account to continue
+                </Text>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Email address</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === 'email' && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your email"
+                      placeholderTextColor={theme.colors.gray[400]}
+                      value={email}
+                      onChangeText={setEmail}
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Password</Text>
+                  <View
+                    style={[
+                      styles.inputWrapper,
+                      focusedField === 'password' && styles.inputWrapperFocused,
+                    ]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your password"
+                      placeholderTextColor={theme.colors.gray[400]}
+                      value={password}
+                      onChangeText={setPassword}
+                      onFocus={() => setFocusedField('password')}
+                      onBlur={() => setFocusedField(null)}
+                      secureTextEntry
+                      autoComplete="password"
+                    />
+                  </View>
+                </View>
+
+                <GradientButton
+                  title="Sign In"
+                  onPress={handleLogin}
+                  loading={loading}
+                  size="lg"
+                  style={styles.loginButton}
+                />
+
+                <View style={styles.demoInfo}>
+                  <Text style={styles.demoText}>
+                    Demo: Use any email and password
+                  </Text>
+                </View>
+              </GradientCard>
+            </View>
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              <View style={styles.securityBadge}>
+                <Text style={styles.securityText}>🔒</Text>
+                <Text style={styles.securityLabel}>
+                  Secured by Squads Protocol
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundGradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    padding: 20,
   },
-  form: {
-    backgroundColor: '#fff',
-    padding: 30,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: height * 0.1,
+    paddingBottom: theme.spacing.xl,
+  },
+  logoContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.lg,
+  },
+  logoText: {
+    fontSize: theme.fontSize['3xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: theme.fontSize['3xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.white,
+    marginBottom: theme.spacing.sm,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#1a1a1a',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: theme.fontSize.lg,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
-    marginBottom: 32,
-    color: '#666',
+    lineHeight: 24,
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.xl,
+  },
+  formCard: {
+    marginHorizontal: theme.spacing.xs,
+  },
+  formTitle: {
+    fontSize: theme.fontSize['2xl'],
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.gray[900],
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  formSubtitle: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.gray[600],
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+    lineHeight: 22,
+  },
+  inputContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  inputLabel: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.gray[700],
+    marginBottom: theme.spacing.sm,
+  },
+  inputWrapper: {
+    borderWidth: 2,
+    borderColor: theme.colors.gray[200],
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.gray[50],
+    transition: 'all 0.2s ease',
+  },
+  inputWrapperFocused: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.white,
+    ...theme.shadows.sm,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    backgroundColor: '#f8f9fa',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    fontSize: theme.fontSize.base,
+    color: theme.colors.gray[900],
+    backgroundColor: 'transparent',
   },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 16,
-    borderRadius: 8,
+  loginButton: {
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+  },
+  demoInfo: {
     alignItems: 'center',
-    marginTop: 8,
+    paddingTop: theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray[100],
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  demoText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.gray[500],
+    fontStyle: 'italic',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  footer: {
+    alignItems: 'center',
+    paddingBottom: theme.spacing.xl,
   },
-  disclaimer: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 12,
-    color: '#666',
+  securityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+  },
+  securityText: {
+    fontSize: theme.fontSize.base,
+    marginRight: theme.spacing.sm,
+  },
+  securityLabel: {
+    fontSize: theme.fontSize.sm,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: theme.fontWeight.medium,
   },
 });
